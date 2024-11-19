@@ -58,6 +58,14 @@ function Get-MsIdAzureUsers {
         @{
             AppId       = "1950a258-227b-4e31-a9cf-717495945fc2"
             DisplayName = "Microsoft Azure PowerShell"
+        },
+        @{
+            AppId       = "0c1307d4-29d6-4389-a11c-5cbe7f65d7fa"
+            DisplayName = "Azure mobile app"
+        },
+        @{
+            AppId       = "00000006-0000-0ff1-ce00-000000000000"
+            DisplayName = "Microsoft 365 admin center"
         }
     )
 
