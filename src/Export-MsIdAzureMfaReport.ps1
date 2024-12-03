@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Exports the list of users that have signed into the Azure portal, Azure CLI, or Azure PowerShell over the last 30 days by querying the sign-in logs.
     In [Microsoft Entra ID Free](https://learn.microsoft.com/entra/identity/monitoring-health/reference-reports-data-retention#activity-reports) tenants, sign-in log retention is limited to seven days.
@@ -199,13 +199,13 @@ function Export-MsIdAzureMfaReport {
         $headerBgColour = [System.Drawing.ColorTranslator]::FromHtml("#0077b6")
         $darkGrayColour = [System.Drawing.ColorTranslator]::FromHtml("#A9A9A9")
         $styles = @(
-            New-ExcelStyle -Range "A1:J$maxRows" -Height 20 -FontSize 14
-            New-ExcelStyle -Range "A1:J1" -FontColor White -BackgroundColor $headerBgColour -Bold -HorizontalAlignment Center
+            New-ExcelStyle -Range "A1:N$maxRows" -Height 20 -FontSize 14
+            New-ExcelStyle -Range "A1:N1" -FontColor White -BackgroundColor $headerBgColour -Bold -HorizontalAlignment Center
             New-ExcelStyle -Range "A2:A$maxRows" -FontColor Blue -Underline
             New-ExcelStyle -Range "D2:D$maxRows" -FontColor Blue -Underline
-            New-ExcelStyle -Range "E2:G$maxRows" -FontColor Blue -HorizontalAlignment Center
+            New-ExcelStyle -Range "E2:J$maxRows" -FontColor Blue -HorizontalAlignment Center
             New-ExcelStyle -Range "C2:C$maxRows" -HorizontalAlignment Center
-            New-ExcelStyle -Range "I2:I$maxRows" -FontColor $darkGrayColour -HorizontalAlignment Fill
+            New-ExcelStyle -Range "L2:L$maxRows" -FontColor $darkGrayColour -HorizontalAlignment Fill
         )
 
         $authMethodBlade = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/UserAuthMethods/userId/%id%/hidePreviewBanner~/true'
@@ -221,7 +221,11 @@ function Export-MsIdAzureMfaReport {
         @{name = 'Az Portal'; expression = { GetTickSymbol $_.AzureAppName "Azure Portal" } }, `
         @{name = 'Az CLI'; expression = { GetTickSymbol $_.AzureAppName "Azure CLI" } }, `
         @{name = 'Az PowerShell'; expression = { GetTickSymbol $_.AzureAppName "Azure PowerShell" } }, `
+        @{name = 'Az mobile app'; expression = { GetTickSymbol $_.AzureAppName "Azure mobile app" } }, `
+        @{name = 'M365 Portal'; expression = { GetTickSymbol $_.AzureAppName "Microsoft Office 365 Portal" } }, `
+        @{name = 'M365 Admin Portal'; expression = { GetTickSymbol $_.AzureAppName "Microsoft 365 Admin portal" } }, `
         @{name = 'Authentication Methods'; expression = { $_.AuthenticationMethods -join ', ' } }, UserId, `
+        @{name = 'SignInEventTypes'; expression = { if (![string]::IsNullOrEmpty($_.signInEventTypes)) { $_.signInEventTypes } } }, `
         @{name = 'Notes'; expression = { if (![string]::IsNullOrEmpty($_.Notes)) { $_.Notes } } } `
 
         $excel = $report | Export-Excel -Path $Path -WorksheetName "MFA Report" `
@@ -240,9 +244,13 @@ function Export-MsIdAzureMfaReport {
         $sheet.Column(5).Width = 17 #Azure Portal
         $sheet.Column(6).Width = 17 #Azure CLI
         $sheet.Column(7).Width = 17 #Azure PowerShell
-        $sheet.Column(8).Width = 40 #AuthenticationMethods
-        $sheet.Column(9).Width = 15 #UserId
-        $sheet.Column(10).Width = 30 #Notes
+        $sheet.Column(8).Width = 17 #Azure mobile app
+        $sheet.Column(9).Width = 17 #Microsoft Office 365 Portal
+        $sheet.Column(10).Width = 17 #Microsoft 365 Admin portal
+        $sheet.Column(11).Width = 40 #AuthenticationMethods
+        $sheet.Column(12).Width = 15 #UserId
+        $sheet.Column(13).Width = 30 #SignInEventTypes
+        $sheet.Column(14).Width = 30 #Notes
 
         Add-ConditionalFormatting -Worksheet $sheet -Range "C2:C$maxRows" -ConditionValue '=$C2="✅"' -RuleType Expression -ForegroundColor Green
         Add-ConditionalFormatting -Worksheet $sheet -Range "C2:C$maxRows" -ConditionValue '=$C2="❌"' -RuleType Expression -ForegroundColor Red
