@@ -65,7 +65,11 @@ function Get-MsIdAzureUsers {
         },
         @{
             AppId       = "00000006-0000-0ff1-ce00-000000000000"
-            DisplayName = "Microsoft 365 admin center"
+            DisplayName = "Microsoft Office 365 Portal"
+        },
+        @{
+            AppId       = "618dd325-23f6-4b6f-8380-4df78026e39b"
+            DisplayName = "Microsoft 365 Admin portal"
         }
     )
 
