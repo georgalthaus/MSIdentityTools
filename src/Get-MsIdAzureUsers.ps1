@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Returns a list of users that have signed into the Azure portal, Azure CLI, or Azure PowerShell over the last 30 days by querying the sign-in logs.
 
@@ -63,10 +63,10 @@ function Get-MsIdAzureUsers {
             AppId       = "0c1307d4-29d6-4389-a11c-5cbe7f65d7fa"
             DisplayName = "Azure mobile app"
         },
-        @{
+        <#@{
             AppId       = "00000006-0000-0ff1-ce00-000000000000"
             DisplayName = "Microsoft Office 365 Portal"
-        },
+        },#>
         @{
             AppId       = "618dd325-23f6-4b6f-8380-4df78026e39b"
             DisplayName = "Microsoft 365 Admin portal"
@@ -97,10 +97,11 @@ function Get-MsIdAzureUsers {
         # Get the date range to query by subtracting the number of days from today set to midnight
         $appFilter = GetAppFilter
         $statusFilter = "and status/errorcode eq 0"
+        $interactiveFilter = " and (signInEventTypes/any(t: t ne 'unknownFutureValue')) "
         $dateFilter = GetDateFilter $pastDays
 
         # Create an array of filter and join with 'and'
-        $filter = "$appFilter $statusFilter $dateFilter"
+        $filter = "$appFilter $statusFilter $interactiveFilter $dateFilter"
         Write-Verbose "Graph filter: $filter"
         $select = "userId,userPrincipalName,userDisplayName,appId,createdDateTime,authenticationRequirement,status"
 
@@ -144,6 +145,7 @@ function Get-MsIdAzureUsers {
                         AzureAppId                = @($item.appId)
                         AuthenticationRequirement = $item.authenticationRequirement
                         HasSignedInWithMfa        = $hasSignedInWithMfa
+                        SignInEventTypes          = @($item.signInEventTypes)
                     }
                     $azureUsers[$userId] = $user
                 }
@@ -151,6 +153,10 @@ function Get-MsIdAzureUsers {
                     # Add the app if it doesn't already exist
                     if ($user.AzureAppId -notcontains $item.appId) {
                         $user.AzureAppId += $item.appId
+                    }
+                    # Add the signineventtype if it doesn't already exist
+                    if ($user.SignInEventTypes -notcontains $item.signInEventTypes) {
+                        $user.SignInEventTypes += $item.signInEventTypes
                     }
                     # Flag as MFA if user signed in at least once
                     if(!$user.HasSignedInWithMfa -and $hasSignedInWithMfa){
@@ -187,6 +193,14 @@ function Get-MsIdAzureUsers {
                 }
             }
             $user.AzureAppName = $appNames -join ", "
+        }
+        # Convert SignInEventTypes to string
+        foreach ($user in $azureUsers.Values) {
+            $SignInEventTypes = @()
+            foreach ($temp in $user.SignInEventTypes) {
+                    $SignInEventTypes += $temp
+            }
+            $user.SignInEventTypes = $SignInEventTypes -join ", "
         }
         return $azureUsers
     }
